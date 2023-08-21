@@ -1,38 +1,41 @@
 import React, { useState } from "react";
 import { useDispatch } from "react-redux";
 import { deleteProduct, updateProduct } from "../Actions/actions";
+import { useForm, Controller } from "react-hook-form";
 
 const ProductItem = (props) => {
   const dispatch = useDispatch();
   const [showModal, setShowModal] = useState(false);
-  const [updatedProduct, setUpdatedProduct] = useState(props.product);
+
+  const {
+    handleSubmit,
+    control,
+    formState: { errors },
+    setValue,
+  } = useForm();
 
   const handleEditClick = () => {
     setShowModal(true);
+    const product = props.product;
+    setValue("price", product.price);
+    setValue("color", product.color);
+    setValue("image", product.image);
   };
 
   const handleCloseModal = () => {
     setShowModal(false);
   };
 
-  const handleSaveChanges = () => {
+  const onSubmit = (data) => {
     dispatch(
       updateProduct({
         ...props.product,
-        price: updatedProduct.price,
-        color: updatedProduct.color,
-        image: updatedProduct.image,
+        price: data.price,
+        color: data.color,
+        image: data.image,
       })
     );
     setShowModal(false);
-  };
-
-  const handleInputChange = (event) => {
-    const { name, value } = event.target;
-    setUpdatedProduct((prevProduct) => ({
-      ...prevProduct,
-      [name]: value,
-    }));
   };
 
   return (
@@ -43,11 +46,11 @@ const ProductItem = (props) => {
       >
         <img src={props.product.image} className="card-img-top" alt="..." />
         <div className="card-body">
-          <div className="conatiner d-flex ">
+          <div className="container d-flex">
             <h5 className="card-title">{props.product.name}</h5>
             <i
-              className="fa fa-pencil-square-o edit "
-              style={{ marginLeft: " 120px" }}
+              className="fa fa-pencil-square-o edit"
+              style={{ marginLeft: "120px" }}
               aria-hidden="true"
               onClick={handleEditClick}
             ></i>
@@ -64,19 +67,7 @@ const ProductItem = (props) => {
         </div>
       </div>
       {showModal && (
-        <div
-          className="modal"
-          style={{
-            display: "block",
-            backgroundColor: "rgba(0, 0, 0, 0.4)",
-            position: "fixed",
-            top: 0,
-            left: 0,
-            width: "100%",
-            height: "100%",
-            zIndex: 1000,
-          }}
-        >
+        <div className="modal" style={{ display: "block" }}>
           <div
             className="modal-dialog"
             style={{ position: "relative", top: "30%" }}
@@ -93,67 +84,87 @@ const ProductItem = (props) => {
                 </button>
               </div>
               <div className="modal-body">
-                <form>
+                <form onSubmit={handleSubmit(onSubmit)}>
                   <div className="mb-3">
                     <label className="form-label">Product Name</label>
                     <input
                       type="text"
                       className="form-control"
                       name="name"
-                      value={updatedProduct.name}
-                      onChange={handleInputChange}
-                      disabled
+                      value={props.product.name}
+                      readOnly
                     />
                   </div>
                   <div className="mb-3">
                     <label className="form-label">Product Price</label>
-                    <input
-                      type="number"
-                      className="form-control"
+                    <Controller
                       name="price"
-                      value={updatedProduct.price}
-                      onChange={handleInputChange}
+                      control={control}
+                      defaultValue=""
+                      render={({ field }) => (
+                        <input
+                          type="number"
+                          className="form-control"
+                          {...field}
+                        />
+                      )}
                     />
                   </div>
                   <div className="mb-3">
                     <label className="form-label">Product Color</label>
-                    <input
-                      type="text"
-                      className="form-control"
+                    <Controller
                       name="color"
-                      value={updatedProduct.color}
-                      onChange={handleInputChange}
-                      required
+                      control={control}
+                      defaultValue=""
+                      rules={{ required: "Color is required" }}
+                      render={({ field }) => (
+                        <input
+                          type="text"
+                          className="form-control"
+                          {...field}
+                        />
+                      )}
                     />
+                    {errors.color && (
+                      <span className="text-danger">
+                        {errors.color.message}
+                      </span>
+                    )}
                   </div>
                   <div className="mb-3">
                     <label className="form-label">Product Image</label>
-                    <input
-                      type="text"
-                      className="form-control"
+                    <Controller
                       name="image"
-                      value={updatedProduct.image}
-                      onChange={handleInputChange}
-                      required
+                      control={control}
+                      defaultValue=""
+                      rules={{ required: "Image URL is required" }}
+                      render={({ field }) => (
+                        <input
+                          type="text"
+                          className="form-control"
+                          {...field}
+                        />
+                      )}
                     />
+                    {errors.image && (
+                      <span className="text-danger">
+                        {errors.image.message}
+                      </span>
+                    )}
+                  </div>
+                  <div className="modal-footer">
+                    <button
+                      type="button"
+                      className="btn btn-secondary"
+                      onClick={handleCloseModal}
+                    >
+                      Close
+                    </button>
+                    <button type="submit" className="btn btn-primary">
+                      Save Changes
+                    </button>
                   </div>
                 </form>
-              </div>
-              <div className="modal-footer">
-                <button
-                  type="button"
-                  className="btn btn-secondary"
-                  onClick={handleCloseModal}
-                >
-                  Close
-                </button>
-                <button
-                  type="button"
-                  className="btn btn-primary"
-                  onClick={handleSaveChanges}
-                >
-                  Save Changes
-                </button>
               </div>
             </div>
           </div>
